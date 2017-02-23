@@ -29,6 +29,12 @@
 import serial
 from threading import Thread
 
+bytes_read = []
+def log(x):
+    print "{}".format(x)
+    bytes_read.append(x)
+    return x
+
 class NeuroPy(object):
     """NeuroPy libraby, to get data from neurosky mindwave.
     Initialising: object1=NeuroPy("COM6",57600) #windows
@@ -98,11 +104,11 @@ class NeuroPy(object):
     def __packetParser(self):
         "packetParser runs continously in a separate thread to parse packets from mindwave and update the corresponding variables"
         while self.__threadRun:
-            p1=self.__srl.read(1).encode("hex") #read first 2 packets
-            p2=self.__srl.read(1).encode("hex")
+            p1=log(self.__srl.read(1).encode("hex")) #read first 2 packets
+            p2=log(self.__srl.read(1).encode("hex"))
             while (p1!='aa' or p2!='aa') and self.__threadRun:
                 p1=p2
-                p2=self.__srl.read(1).encode("hex")
+                p2=log(self.__srl.read(1).encode("hex"))
             else:
                 if self.__threadRun == False:
                     break
@@ -110,15 +116,17 @@ class NeuroPy(object):
                 self.__packetsReceived += 1
                 payload=[]
                 checksum=0;
-                payloadLength=int(self.__srl.read(1).encode("hex"),16)
+                payloadLength=int(log(self.__srl.read(1).encode("hex")),16)
                 for i in range(payloadLength):
-                    tempPacket=self.__srl.read(1).encode("hex")
+                    tempPacket=log(self.__srl.read(1).encode("hex"))
                     payload.append(tempPacket)
                     checksum+=int(tempPacket,16)
                 checksum=~checksum&0x000000ff
-                if checksum==int(self.__srl.read(1).encode("hex"),16):
+                #print payload
+                #print payloadLength
+                if checksum==int(log(self.__srl.read(1).encode("hex")),16):
                    i=0
-                   while i<payloadLength:
+                   while i<payloadLength-1:
                        code=payload[i]
                        if(code=='02'):#poorSignal
                            i=i+1; self.poorSignal=int(payload[i],16)
