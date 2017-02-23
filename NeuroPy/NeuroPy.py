@@ -30,10 +30,6 @@ import serial
 from threading import Thread
 
 bytes_read = []
-def log(x):
-    print "{}".format(x)
-    bytes_read.append(x)
-    return x
 
 class NeuroPy(object):
     """NeuroPy libraby, to get data from neurosky mindwave.
@@ -66,7 +62,7 @@ class NeuroPy(object):
     __blinkStrength=0
 
     callBacksDictionary={} #keep a track of all callbacks
-    def __init__(self,port,baudRate=57600):
+    def __init__(self,port,baudRate=57600, log=False):
         self.__serialPort       = port
         self.__serialBaudRate   = baudRate
         self.__packetsReceived  = 0
@@ -74,10 +70,16 @@ class NeuroPy(object):
         self.__parserThread   = None
         self.__threadRun      = False
         self.__srl            = None
+        self.__log            = log
         
     def __del__(self):      
         if self.__threadRun == True:
             self.stop()
+
+    def log(self, x):
+        if self.__log == True:
+            print "{}".format(x)
+        return x
     
     def start(self):
         # Try to connect to serial port and start a separate thread
@@ -104,11 +106,11 @@ class NeuroPy(object):
     def __packetParser(self):
         "packetParser runs continously in a separate thread to parse packets from mindwave and update the corresponding variables"
         while self.__threadRun:
-            p1=log(self.__srl.read(1).encode("hex")) #read first 2 packets
-            p2=log(self.__srl.read(1).encode("hex"))
+            p1=self.log(self.__srl.read(1).encode("hex")) #read first 2 packets
+            p2=self.log(self.__srl.read(1).encode("hex"))
             while (p1!='aa' or p2!='aa') and self.__threadRun:
                 p1=p2
-                p2=log(self.__srl.read(1).encode("hex"))
+                p2=self.log(self.__srl.read(1).encode("hex"))
             else:
                 if self.__threadRun == False:
                     break
@@ -116,15 +118,15 @@ class NeuroPy(object):
                 self.__packetsReceived += 1
                 payload=[]
                 checksum=0;
-                payloadLength=int(log(self.__srl.read(1).encode("hex")),16)
+                payloadLength=int(self.log(self.__srl.read(1).encode("hex")),16)
                 for i in range(payloadLength):
-                    tempPacket=log(self.__srl.read(1).encode("hex"))
+                    tempPacket=self.log(self.__srl.read(1).encode("hex"))
                     payload.append(tempPacket)
                     checksum+=int(tempPacket,16)
                 checksum=~checksum&0x000000ff
                 #print payload
                 #print payloadLength
-                if checksum==int(log(self.__srl.read(1).encode("hex")),16):
+                if checksum==int(self.log(self.__srl.read(1).encode("hex")),16):
                    i=0
                    while i<payloadLength-1:
                        code=payload[i]
