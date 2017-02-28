@@ -128,9 +128,11 @@ class NeuroPy(object):
                 #print payloadLength
                 if checksum==int(self.log(self.__srl.read(1).encode("hex")),16):
                    i=0
-                   while i<payloadLength-1:
+                   while i<payloadLength:
                        code=payload[i]
-                       if(code=='02'):#poorSignal
+                       if(code=='ba'):
+                          break
+                       elif(code=='02'):#poorSignal
                            i=i+1; self.poorSignal=int(payload[i],16)
                        elif(code=='04'):#attention
                            i=i+1; self.attention=int(payload[i],16)
