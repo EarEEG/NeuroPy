@@ -130,7 +130,10 @@ class NeuroPy(object):
                    i=0
                    while i<payloadLength:
                        code=payload[i]
+                       print(i, payloadLength, payload)
                        if(code=='ba'):
+                          break
+                       elif(code=='bc'):
                           break
                        elif(code=='02'):#poorSignal
                            i=i+1; self.poorSignal=int(payload[i],16)
